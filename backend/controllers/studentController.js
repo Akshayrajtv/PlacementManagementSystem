@@ -198,17 +198,33 @@ export const addProfileDetailsStudentController = async (req, res) => {
     }
 };
 
-
 export const getallStudentsController = async (req, res) => {
     try {
-      // Fetch all students from the database
-      const fetchedStudents = await students.find();
-  
-      // Send the students as the response
-      res.json(fetchedStudents);
+        // Fetch all students from the database
+        const fetchedStudents = await students.find();
+
+        // Send the students as the response
+        res.json(fetchedStudents);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "An error occurred while retrieving students." });
+        console.error(error);
+        res.status(500).json({
+            error: "An error occurred while retrieving students.",
+        });
     }
-  };
-  
+};
+
+export const getStudentByIdController = async (req, res) => {
+    try {
+        const studentIds = req.params.ids.split(","); // Split IDs
+        const student = await students.find({ _id: { $in: studentIds } }); // Use Student model
+
+        if (!student) {
+            return res.status(404).json({ error: "Students not found" });
+        }
+
+        res.status(200).json(student);
+    } catch (error) {
+        console.error("Failed to fetch students:", error);
+        res.status(500).json({ error: "Failed to fetch students" });
+    }
+};

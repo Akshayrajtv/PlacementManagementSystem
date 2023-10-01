@@ -134,13 +134,24 @@ const recruiterSchema = new mongoose.Schema({
         totalRounds: {
             type: Number,
             // required: true,
-        }
-       
+        },
     },
-    recruitRequest:{
-        type:Boolean,
-        default:false
-    }
+
+    appliedStudents: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Student",
+            value: "[ '' ]",
+        },
+    ],
+    recruitRequest: {
+        type: Boolean,
+        default: false,
+    },
+    adminAccept: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 export default mongoose.model("Recruiter", recruiterSchema);

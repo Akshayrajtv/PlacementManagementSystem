@@ -20,7 +20,8 @@ import toast, { Toaster } from "react-hot-toast";
 
 const AdminRecruiters = () => {
     const [recruiters, setRecruiters] = useState([]);
-    const [action, setAction] = useState(false);
+    const [action1, setAction1] = useState(true);
+    const [action2, setAction2] = useState(false);
     const [selectedRecruiter, setSelectedRecruiter] = useState(null);
     const [openModal, setOpenModal] = useState(false);
 
@@ -39,22 +40,24 @@ const AdminRecruiters = () => {
         fetchRecruiters();
     }, []);
 
-    const handleReject = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.put(
-                `http://localhost:8080/api/recruiters/recruiterRequest/${selectedRecruiter._id}`,
-                {
-                    action: action,
-                }
-            );
-        } catch (err) {
-            console.log(err);
-        }
-    };
+    // const handleReject = async (e) => {
+    //     e.preventDefault();
+    //     try {
+    //         await axios.put(
+    //             `http://localhost:8080/api/recruiters/recruiterRequest/${selectedRecruiter._id}`,
+    //             {
+    //                 action: action,
+    //             }
+    //         );
+    //     } catch (err) {
+    //         console.log(err);
+    //     }
+    // };
 
     const handleAccept = (recruiter) => {
         setSelectedRecruiter(recruiter);
+        setAction1(false);
+        setAction2(true);
         setOpenModal(true);
         setTimeout(() => {
             setOpenModal(false);
@@ -65,13 +68,14 @@ const AdminRecruiters = () => {
         e.preventDefault();
         try {
             await Promise.all([
-                axios.post(
-                    `http://localhost:8080/api/recruiters/recruitermatch/${selectedRecruiter._id}`
-                ),
-                axios.put(
-                    `http://localhost:8080/api/recruiters/recruiterRequest/${selectedRecruiter._id}`,
+                // axios.post(
+                //     `http://localhost:8080/api/recruiters/recruitermatch/${selectedRecruiter._id}`
+                // ),
+                axios.patch(
+                    `http://localhost:8080/api/recruiters/adminAcceptRequest/${selectedRecruiter._id}`,
                     {
-                        action: action,
+                        action1: action1,
+                        action2: action2,
                     }
                 ),
             ]);
@@ -116,6 +120,9 @@ const AdminRecruiters = () => {
                                 <TableCell>Email Address</TableCell>
                                 <TableCell>Phone Number</TableCell>
                                 <TableCell>Package</TableCell>
+                                <TableCell>CGPA</TableCell>
+                                <TableCell>Cleared Backlogs</TableCell>
+                                <TableCell>Active Backlogs</TableCell>
                                 <TableCell>Action</TableCell>
                             </TableRow>
                         </TableHead>
@@ -131,6 +138,24 @@ const AdminRecruiters = () => {
                                     </TableCell>
                                     <TableCell>{recruiter.package}</TableCell>
                                     <TableCell>
+                                        {
+                                            recruiter.eligibilityCriteria
+                                                .btechCutoff
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        {
+                                            recruiter.eligibilityCriteria
+                                                .maxClearedBacklogs
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        {
+                                            recruiter.eligibilityCriteria
+                                                .maxNonClearedBacklogs
+                                        }
+                                    </TableCell>
+                                    <TableCell>
                                         <Box display="flex">
                                             <Button
                                                 variant="contained"
@@ -145,7 +170,7 @@ const AdminRecruiters = () => {
                                             <Button
                                                 variant="contained"
                                                 color="error"
-                                                onClick={() => handleReject()}
+                                                // onClick={() => handleReject()}
                                             >
                                                 Reject
                                             </Button>

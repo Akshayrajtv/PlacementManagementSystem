@@ -1,73 +1,106 @@
+// import React, { useState, useEffect } from "react";
+// import axios from "axios";
+// import { Container, Row, Col, Card, Button } from "react-bootstrap";
+
+// const NotificationDashboard = () => {
+//     const [notifications, setNotifications] = useState([]);
+
+//     useEffect(() => {
+//         const fetchNotifications = async () => {
+//             try {
+//                 const response = await axios.get(
+//                     "http://localhost:8080/api/recruiters/getadminaccept"
+//                 );
+//                 setNotifications(response.data);
+//             } catch (error) {
+//                 console.error(error);
+//             }
+//         };
+
+//         fetchNotifications();
+//     }, []);
+
+//     return (
+//         <Container>
+//             <h1>Notification Dashboard</h1>
+//             {notifications.map((notification) => (
+//                 <Card key={notification._id} className="mb-4">
+//                     <Card.Body>
+//                         <Row className="align-items-center">
+//                             <Col xs={12} md={8}>
+//                                 <Card.Subtitle className="mb-2 text-muted">
+//                                     {notification.companyName}
+//                                 </Card.Subtitle>
+//                                 <Card.Text>
+//                                     Nature of Business:{" "}
+//                                     {notification.natureOfBusiness}
+//                                 </Card.Text>
+//                                 {/* <p>
+//                                     Pay Package:{" "}
+//                                     {notification.payPackage.grossSalary}
+//                                 </p>
+//                                 <p>Bond: {notification.payPackage.bond}</p>
+//                                 <p>
+//                                     Bond Years:{" "}
+//                                     {notification.payPackage.bondYears}
+//                                 </p> */}
+//                             </Col>
+//                             <Col
+//                                 xs={12}
+//                                 md={4}
+//                                 className="text-md-right mt-3 mt-md-0"
+//                             >
+//                                 <Button variant="success">Apply</Button>
+//                             </Col>
+//                         </Row>
+//                     </Card.Body>
+//                 </Card>
+//             ))}
+//         </Container>
+//     );
+// };
+
+// export default NotificationDashboard;
+
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 
 const NotificationDashboard = () => {
     const [notifications, setNotifications] = useState([]);
+    const studentData = JSON.parse(localStorage.getItem("user"));
+
+    const studentId=studentData._id;
 
     useEffect(() => {
-        // Simulating fetching notifications from an API
-        const fetchNotifications = () => {
-            // Sample data for notifications
-            const notificationsData = [
-                {
-                    _id: 1,
-                    isNotification: true,
-                    company: {
-                        companyName: "Company A",
-                        natureOfBusiness: "Technology",
-                        payPackage: "100,000",
-                    },
-                },
-                {
-                    _id: 2,
-                    isNotification: true,
-                    company: {
-                        companyName: "Company B",
-                        natureOfBusiness: "Finance",
-                        payPackage: "80,000",
-                    },
-                },
-                {
-                    _id: 3,
-                    isNotification: true,
-                    company: {
-                        companyName: "Company C",
-                        natureOfBusiness: "Marketing",
-                        payPackage: "90,000",
-                    },
-                },
-            ];
-
-            // Filter notifications where isNotification is true
-            const filteredNotifications = notificationsData.filter(
-                (notification) => notification.isNotification
-            );
-
-            setNotifications(filteredNotifications);
+        const fetchNotifications = async () => {
+            try {
+                const response = await axios.get(
+                    "http://localhost:8080/api/recruiters/getadminaccept"
+                );
+                setNotifications(response.data);
+            } catch (error) {
+                console.error(error);
+            }
         };
 
         fetchNotifications();
     }, []);
 
-    const handleAccept = (id) => {
-        // Logic to handle accepting a job opportunity
-        // Update the notification status or perform any necessary actions
-        // For example, you can remove the notification from the list
-        const updatedNotifications = notifications.filter(
-            (notification) => notification._id !== id
-        );
-        setNotifications(updatedNotifications);
+    const handleApply = async (recruiterId) => {
+        try {
+            console.log(recruiterId);
+            await axios.put(
+                `http://localhost:8080/api/recruiters/getstudentaccept/${recruiterId}`,
+                {studentId} // Pass studentId in the request body
+            );
+    
+            // Refresh notifications or handle application success as needed
+        } catch (error) {
+            console.error("Error applying:", error);
+        }
     };
-
-    const handleReject = (id) => {
-        // Logic to handle rejecting a job opportunity
-        // Update the notification status or perform any necessary actions
-        // For example, you can remove the notification from the list
-        const updatedNotifications = notifications.filter(
-            (notification) => notification._id !== id
-        );
-        setNotifications(updatedNotifications);
-    };
+    
 
     return (
         <Container>
@@ -78,16 +111,28 @@ const NotificationDashboard = () => {
                         <Row className="align-items-center">
                             <Col xs={12} md={8}>
                                 <Card.Subtitle className="mb-2 text-muted">
-                                    {notification.company.companyName}
+                                    {notification.companyName}
                                 </Card.Subtitle>
                                 <Card.Text>
                                     Nature of Business:{" "}
-                                    {notification.company.natureOfBusiness}
+                                    {notification.natureOfBusiness}
                                 </Card.Text>
-                                <p>
-                                    Pay Package:{" "}
-                                    {notification.company.payPackage}
-                                </p>
+                                <Card.Text>
+                                    Package:{" "}
+                                    {notification.payPackage.grossSalary}
+                                </Card.Text>
+                                <Card.Text>
+                                    CGPA:{" "}
+                                    {notification.eligibilityCriteria.btechCutoff}
+                                </Card.Text>
+                                <Card.Text>
+                                    Active Backlogs:{" "}
+                                    {notification.eligibilityCriteria.maxNonClearedBacklogs}
+                                </Card.Text>
+                                <Card.Text>
+                                    Cleared Backlogs:{" "}
+                                    {notification.eligibilityCriteria.maxClearedBacklogs}
+                                </Card.Text>
                             </Col>
                             <Col
                                 xs={12}
@@ -96,20 +141,11 @@ const NotificationDashboard = () => {
                             >
                                 <Button
                                     variant="success"
-                                    className="mr-2"
                                     onClick={() =>
-                                        handleAccept(notification._id)
+                                        handleApply(notification._id)
                                     }
                                 >
-                                    Accept
-                                </Button>
-                                <Button
-                                    variant="danger"
-                                    onClick={() =>
-                                        handleReject(notification._id)
-                                    }
-                                >
-                                    Reject
+                                    Apply
                                 </Button>
                             </Col>
                         </Row>

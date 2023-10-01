@@ -2,17 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
-
 const MatchedStudents = () => {
     const [companies, setCompanies] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        // Fetch the list of companies from the backend API
         const fetchCompanies = async () => {
             try {
                 const response = await axios.get(
-                    "http://localhost:8080/api/recruiters/companies"
+                    "http://localhost:8080/api/recruiters/getadminaccept"
                 );
                 setCompanies(response.data);
             } catch (error) {
@@ -26,10 +24,6 @@ const MatchedStudents = () => {
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
     };
-
-    const filteredCompanies = companies.filter((company) =>
-        company.companyName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     return (
         <div className="container">
@@ -45,68 +39,57 @@ const MatchedStudents = () => {
                 </div>
             </div>
             <div className="row">
-                {filteredCompanies.map((company) => (
+                {companies.map((company) => (
                     <div className="col-md-12 mb-4" key={company._id}>
                         <CompanyRow company={company} />
                     </div>
                 ))}
             </div>
+            <Toaster position="top-center" />
         </div>
     );
 };
 
 const CompanyRow = ({ company }) => {
     const [showStudents, setShowStudents] = useState(false);
-    const [matchedStudents, setMatchedStudents] = useState([]);
-    const [studid, setStudid] = useState([]);
+    const [appliedStudentIds, setAppliedStudentIds] = useState([]);
+    const [appliedStudents, setAppliedStudents] = useState([]);
 
     const handleViewStudents = async () => {
-        // Fetch the matched students for the company from the backend API
         try {
             const response = await axios.get(
-                `http://localhost:8080/api/recruiters/companies/${company._id}`
+                `http://localhost:8080/api/recruiters/getstudentsaccept/${company._id}`
             );
-            const studentIds = response.data.matchedStudents[0].studentIds;
-            setStudid(studentIds);
-            const students = await Promise.all(
-                studentIds.map(async (studentId) => {
-                    const studentResponse = await axios.get(
-                        `http://localhost:8080/api/recruiters/students/${studentId.studentId}`
-                    );
-                    return studentResponse.data;
-                })
-            );
-            setMatchedStudents(students);
+            setAppliedStudentIds(response.data);
             setShowStudents(true);
         } catch (error) {
-            console.error("Failed to fetch matched students:", error);
+            console.error("Failed to fetch applied student IDs:", error);
         }
     };
+
+    useEffect(() => {
+        const fetchAppliedStudents = async () => {
+            try {
+                if (appliedStudentIds.length > 0) {
+                    const response = await axios.get(
+                        `http://localhost:8080/api/students/acceptedstudents/${appliedStudentIds.join(
+                            ","
+                        )}`
+                    );
+                    setAppliedStudents(response.data);
+                    console.log(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch applied students:", error);
+            }
+        };
+
+        fetchAppliedStudents();
+    }, [appliedStudentIds]);
 
     const handleClose = () => {
         setShowStudents(false);
-    };
-
-    const handleSendNotification = async () => {
-        try {
-            const notificationData = {
-                recruiterId: company._id,
-                isNotification: true,
-                studentIds: studid.map((id) => ({
-                    studentId: id.studentId,
-                    accepted: false,
-                })),
-            };
-
-            await axios.post(
-                "http://localhost:8080/api/recruiters/notifications",
-                notificationData
-            );
-              toast.success("Send notifications to list of students")
-            // Show success notification or perform any other actions after sending notifications
-        } catch (error) {
-            console.error("Failed to send notifications:", error);
-        }
+        setAppliedStudentIds([]);
     };
 
     return (
@@ -124,42 +107,40 @@ const CompanyRow = ({ company }) => {
                         className="btn btn-primary"
                         onClick={handleViewStudents}
                     >
-                        View Matched Students
+                        View Applications
                     </button>
                 )}
                 {showStudents && (
                     <div>
-                        <div className="table-responsive">
-                            <table className="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Email</th>
-                                        <th>CGPA</th>
-                                        <th>Skills</th>
-                                        <th>Department</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {matchedStudents.map((student) => (
-                                        <tr key={student._id}>
-                                            <td>{student.username}</td>
-                                            <td>{student.email}</td>
-                                            <td>{student.cgpa}</td>
-                                            <td>{student.skills.join(", ")}</td>
-                                            <td>{student.department}</td>
+                        {appliedStudents && appliedStudents.length > 0 ? (
+                            <div className="table-responsive">
+                                <table className="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>CGPA</th>
+                                            <th>Backlogs</th>
+                                            <th>Department</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {appliedStudents.map((student) => (
+                                            <tr key={student._id}>
+                                                <td>{student.username}</td>
+                                                <td>{student.email}</td>
+                                                <td>{student.cgpa}</td>
+                                                <td>{student.backlogs}</td>
+                                                <td>{student.department}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <p>No applied students to display.</p>
+                        )}
                         <div className="d-flex justify-content-between">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleSendNotification}
-                            >
-                                Send Notification
-                            </button>
                             <button
                                 className="btn btn-secondary"
                                 onClick={handleClose}
@@ -170,9 +151,8 @@ const CompanyRow = ({ company }) => {
                     </div>
                 )}
             </div>
-            <Toaster position="top-center"/>
+            <Toaster position="top-center" />
         </div>
-    
     );
 };
 

@@ -5,6 +5,7 @@ import {
     loginStudentController,
     getProfileStudentController,
     updateProfileStudentController,
+    getStudentByIdController,
     changePasswordStudentController,
     addProfileDetailsStudentController,
     getallStudentsController
@@ -19,6 +20,7 @@ router.post("/studentRegister", registerStudentController);
 
 // Student login route
 router.post("/studentLogin", loginStudentController);
+router.get("/acceptedstudents/:ids",getStudentByIdController);
 
 // Student profile route
 router.get("/StudentProfile/:id", getProfileStudentController);

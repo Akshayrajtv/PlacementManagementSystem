@@ -1,15 +1,27 @@
 import React, { useState } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
-import { Link } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Sidebar } from "react-pro-sidebar";
 import { tokens } from "../../theme";
 import FlexBetween from "../global/FlexBetween";
+import { Link, useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 
 const colors = tokens();
 
 const Item = ({ title, to, selected, setSelected }) => {
     const isActive = selected === title;
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        if (title === "Logout") {
+            localStorage.clear();
+            toast.success("Logged out Successfully!");
+            // Handle admin login - redirect to the admin dashboard
+            setTimeout(() => {
+                navigate("/recruiter/login");
+            }, 1500);
+        }
+    };
 
     const itemStyle = {
         textDecoration: "none",
@@ -23,7 +35,10 @@ const Item = ({ title, to, selected, setSelected }) => {
 
     return (
         <MenuItem
-            onClick={() => setSelected(title)}
+            onClick={() => {
+                setSelected(title);
+                handleLogout();
+            }}
             selected={isActive}
             component={Link}
             to={to}
@@ -40,9 +55,9 @@ const getMenuItems = (selected, setSelected) => {
         { title: "Invitations", to: "/admin/invitations" },
         { title: "Students", to: "/admin/students" },
         { title: "Requested Company", to: "/admin/company" },
-        { title: "Matched Students", to: "/admin/matched" },
+        { title: "Applied Students", to: "/admin/matched" },
         { title: "Accepted Students", to: "/admin/accepted" },
-        { title: "Logout", to: "/" },
+        { title: "Logout" },
     ];
 
     return menuItems.map((item) => (
@@ -89,7 +104,11 @@ const AdminSidebar = () => {
                                     width="100px"
                                     height="100px"
                                     src="../../assets/user.png"
-                                    style={{ cursor: "pointer", borderRadius: "50%", margin: "10px" }}
+                                    style={{
+                                        cursor: "pointer",
+                                        borderRadius: "50%",
+                                        margin: "10px",
+                                    }}
                                 />
                             </Box>
                             <Box textAlign="center">
@@ -97,7 +116,7 @@ const AdminSidebar = () => {
                                     variant="h2"
                                     sx={{
                                         m: "10px 0 0 0",
-                                        fontSize: "2rem"
+                                        fontSize: "2rem",
                                     }}
                                 >
                                     admin
@@ -110,7 +129,13 @@ const AdminSidebar = () => {
                 </Box>
             </Box>
             {/* hamburger menu */}
-            <Box sx={{ display: { xs: "block", md: "none" }, height: "100%", marginTop: "20px" }}>
+            <Box
+                sx={{
+                    display: { xs: "block", md: "none" },
+                    height: "100%",
+                    marginTop: "20px",
+                }}
+            >
                 <IconButton
                     color="inherit"
                     onClick={handleMenuToggle}
